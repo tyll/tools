@@ -1,0 +1,168 @@
+#!/usr/bin/python -tt
+# vim: fileencoding=utf8 foldmethod=marker
+#{{{ License header: MIT
+# Copyright (c) 2014 Till Maas <opensource@till.name>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#}}}
+""" Find binary data. """
+
+import argparse
+import datetime
+import os
+import re
+import string
+import sys
+import tempfile
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Binary regular expression finder")
+    parser.add_argument("--regex", default=False, action="store_true",
+                        help="Do regex matching")
+    parser.add_argument("--no-dotall", default=True, action="store_false",
+                        dest="dotall",
+                        help="Do not use re.DOTALL for regular expression")
+    parser.add_argument("--header", default="", help="Header of a match")
+    parser.add_argument("--out-prefix", default="bxfind-",
+                        help="Prefix for output files")
+    parser.add_argument("infilename")
+    parser.add_argument("searchstring")
+    args = parser.parse_args()
+
+    read = 0
+    infilename = args.infilename
+    searchstring = args.searchstring
+    if args.regex:
+        buflen = 3 * 2 ** 20
+        flags = 0
+        if args.dotall:
+            flags |= re.DOTALL
+        args.regex = re.compile(searchstring, flags)
+    else:
+        buflen = 2 ** 20
+
+    data = ""
+    stat_count = 0
+    last_stat = 0
+    data_offset = 0
+    with open(infilename, "rb") as ifile:
+        # Determine file size without stat since this works for block devices
+        # as well
+        file_size = os.lseek(ifile.fileno(), 0, os.SEEK_END)
+        # Reset file position
+        os.lseek(ifile.fileno(), 0, os.SEEK_SET)
+
+        beginning = datetime.datetime.now()
+        while True:
+            file_pos = ifile.tell()
+            # Show statistics every 100 iterations but only once per second
+            if stat_count == 0:
+                now = datetime.datetime.now()
+                if last_stat != now.second:
+                    done = float(file_pos) / file_size
+                    elapsed = (now - beginning).total_seconds()
+                    try:
+                        eta = elapsed / done
+                    except ZeroDivisionError:
+                        eta = float("inf")
+
+                    sys.stderr.write(
+                        "\r0x{pos:x}/0x{size:x} {done:3.2%} "
+                        "{elapsed:.0f}/{eta:.0f}s, "
+                        "remaining: {remaining:3.0f}s".format(
+                            done=done,
+                            elapsed=elapsed,
+                            eta=eta,
+                            pos=file_pos,
+                            remaining=eta - elapsed,
+                            size=file_size,
+                        )
+                    )
+                    last_stat = now.second
+            elif stat_count == 100:
+                stat_count = 0
+            else:
+                stat_count += 1
+
+            if args.regex:
+                new_data = ifile.read(buflen - len(data))
+            else:
+                new_data = ifile.read(buflen)
+
+            # No new data to process
+            if new_data == "":
+                break
+
+            data += new_data
+
+            offset = 0
+            while True:
+                if args.header:
+                    relpos = string.find(data, args.header, offset)
+                    if relpos > -1:
+                        offset = relpos
+                    else:
+                        break
+                if args.regex:
+                    search_data = data[offset:]
+                    match = args.regex.search(search_data)
+                    if match:
+                        relpos = offset + match.start()
+                    else:
+                        break
+                else:
+                    relpos = string.find(data, searchstring, offset)
+                if relpos > -1:
+                    offset = relpos + 1
+                    abspos = file_pos - data_offset + relpos
+                    print "\nfound at 0x{0:x}".format(abspos)
+                    if args.regex:
+                        found = match.string[match.start():match.end()]
+                        outfile, filename = tempfile.mkstemp(
+                            suffix=".txt",
+                            prefix="{prefix}{abspos:x}_{length:x}-".format(
+                                prefix=args.out_prefix,
+                                abspos=abspos,
+                                length=len(found),
+                            )
+                        )
+                        outfile = os.fdopen(outfile, "wb")
+                        outfile.write(found)
+                        print "written to: {name}".format(name=filename)
+                        outfile.close()
+                    else:
+                        before = data[relpos - 64:relpos]
+                        after = data[relpos:relpos + 65]
+                        print repr(before)
+                        print repr(after)
+                else:
+                    break
+
+            # Remove already processed data
+            data = data[offset:]
+            # remove everything except for the last bytes that might contain
+            # the beginning of the searchstring
+            if args.regex:
+                keep_length = buflen * 2 / 3
+            else:
+                keep_length = len(searchstring)
+            data = data[- keep_length:]
+            # data_offset: How much data is cached before the file position
+            data_offset = len(data)
