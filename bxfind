@@ -137,7 +137,7 @@ if __name__ == "__main__":
                         found = match.string[match.start():match.end()]
                         outfile, filename = tempfile.mkstemp(
                             suffix=".txt",
-                            prefix="{prefix}{abspos:x}_{length:x}-".format(
+                            prefix="{prefix}0x{abspos:x}_{length:x}-".format(
                                 prefix=args.out_prefix,
                                 abspos=abspos,
                                 length=len(found),
