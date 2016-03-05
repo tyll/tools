@@ -157,6 +157,13 @@ class Tooler(object):
                         print("rm ", entry, "# ", linkinfo)
                     else:
                         print(linkinfo)
+                else:
+                    if isknown(linktarget):
+                        print("GOOD", entry)
+                    else:
+                        print("UNKNOWN link", entry)
+            else:
+                print("UNKNOWN", entry)
 
 
 if __name__ == "__main__":
