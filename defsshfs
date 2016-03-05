@@ -22,4 +22,4 @@
 # THE SOFTWARE.
 #}}}
 
-exec sshfs -o "delay_connect,TCPKeepAlive=yes,ServerAliveInterval=3,reconnect,transform_symlinks,idmap=user" "${@}"
+exec sshfs -o "delay_connect,allow_root,TCPKeepAlive=yes,ServerAliveInterval=3,reconnect,transform_symlinks,idmap=user" "${@}"
