@@ -35,6 +35,8 @@ bindir: ~/bin
 tooldirs: {}
 """
 
+IGNORE_DIRS = (".git", ".svn", ".hg")
+
 
 class Config(object):
     def __init__(self, filepath):
@@ -81,7 +83,8 @@ def get_tools(path):
             filestat = os.stat(fullpath)
             if "x" in stat.filemode(filestat.st_mode):
                 yield fullpath, filestat
-        for ignore in (".git", ".svn", ".hg"):
+
+        for ignore in IGNORE_DIRS:
             if ignore in dirs:
                 dirs.remove(ignore)
 
