@@ -1,4 +1,4 @@
-#!/usr/bin/python3 -tt
+#!/usr/bin/python3 -ttu
 # vim: fileencoding=utf8
 #{{{ License header: MIT
 # Copyright (c) 2016 Till Maas <opensource@till.name>
