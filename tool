@@ -114,8 +114,7 @@ class Tooler(object):
         elif args.cmd == "check":
             self.check(None)
 
-    def add(self, dirs):
-
+    def add(self, dirs, dry_run=False):
         for dir_ in dirs:
             tooldir = os.path.relpath(dir_, self.homedir)
             if not tooldir in self.config:
@@ -127,8 +126,11 @@ class Tooler(object):
                 relpath = os.path.relpath(tool, self.bindir)
                 linkinfo = "{} -> {}".format(binpath, relpath)
                 if not os.path.isfile(binpath):
-                    os.symlink(relpath, binpath)
-                    print("Added " + linkinfo)
+                    if not dry_run:
+                        os.symlink(relpath, binpath)
+                        print("Added ", linkinfo)
+                    else:
+                        print("Would add", linkinfo)
                 else:
                     filestat = os.stat(binpath)
                     if os.path.samestat(filestat, toolstat):
@@ -136,12 +138,14 @@ class Tooler(object):
                     else:
                         print("Conflict: " + linkinfo)
 
-    def check(self, dirs):
-        if dirs is None:
-            dirs = list(self.config["tooldirs"])
-        dirs = [os.path.relpath(os.path.join(self.homedir, dir_),
+    def check(self, tooldirs):
+        if tooldirs is None:
+            tooldirs = list(self.config["tooldirs"])
+        canonical_tooldirs = [os.path.join(self.homedir, dir_) for
+                              dir_ in tooldirs]
+        dirs = [os.path.relpath(dir_,
                                 self.bindir) for
-                dir_ in dirs]
+                dir_ in canonical_tooldirs]
 
         def isknown(target):
             for dir_ in dirs:
@@ -167,6 +171,8 @@ class Tooler(object):
                         print("UNKNOWN link", entry)
             else:
                 print("UNKNOWN", entry)
+
+        self.add(canonical_tooldirs, dry_run=True)
 
 
 if __name__ == "__main__":
