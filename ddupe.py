@@ -23,7 +23,7 @@
 #}}}
 
 import argparse
-from binascii import hexlify
+import fnmatch
 import hashlib
 import os
 import sys
@@ -117,6 +117,8 @@ if __name__ == "__main__":
     parser.add_argument("directories", nargs="*", default=["."])
     parser.add_argument("--suffix", default="")
     parser.add_argument("--rm", default=False, action="store_true")
+    parser.add_argument("--prefer-rm", default=None, nargs="+",
+                        help="Patterns of files to prefer when removing")
     parser.add_argument("-v", "--verbose", default=False, action="store_true")
     args = parser.parse_args()
 
@@ -146,9 +148,29 @@ if __name__ == "__main__":
                             checked.append(otherfile)
                 if dupes:
                     dupes.insert(0, file_)
-                    print("#", dupes[0].path)
-                    for f in dupes[1:]:
-                        print("rm {}".format(f.path))
+                    dupe_paths = [d.path for d in dupes]
+                    if args.prefer_rm is None:
+                        keep = dupe_paths[0]
+                        remove = dupe_paths[1:]
+                    else:
+                        remove = []
+                        for pattern in args.prefer_rm:
+                            new_removers = fnmatch.filter(dupe_paths, pattern)
+                            remove.extend(new_removers)
+                            dupe_paths = [d for d in dupe_paths if
+                                          d not in new_removers]
+                        if len(dupe_paths) == 0:
+                            keep = remove[0]
+                            remove = remove[1:]
+                        elif len(dupe_paths) > 1:
+                            keep = dupe_paths[0]
+                            remove += dupe_paths[1:]
+                        else:
+                            keep = dupe_paths[0]
+
+                    print("#", keep)
+                    for f in remove:
+                        print("rm", f)
                         if args.rm:
-                            os.remove(f.path)
+                            os.remove(f)
                     print("")
