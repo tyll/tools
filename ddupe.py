@@ -114,7 +114,7 @@ def get_files(path, suffix=""):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("directories", nargs="+")
+    parser.add_argument("directories", nargs="*", default=["."])
     parser.add_argument("--suffix", default="")
     parser.add_argument("--rm", default=False, action="store_true")
     parser.add_argument("-v", "--verbose", default=False, action="store_true")
