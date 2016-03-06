@@ -127,6 +127,10 @@ if __name__ == "__main__":
             filedb.add(filename)
 
     for size, files in filedb.sizes.items():
+        # FIXME: Ignore empty files for now
+        # might be __init__.py files
+        if size == 0:
+            continue
         if len(files) > 1:
             checked = []
             for index, file_ in enumerate(files):
