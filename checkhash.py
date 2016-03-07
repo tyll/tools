@@ -33,6 +33,10 @@ BUFFERSIZE = 2 ** 21  # 2 MiB
 
 
 def get_lengthmap():
+    """
+    Map length of binary checksum to name of known hashlib algorithms in
+    lowercase
+    """
     lengthmap = {}
     for algorithm in hashlib.algorithms:
         hashlength = hashlib.new(algorithm).digest_size
@@ -43,7 +47,7 @@ def get_lengthmap():
 lengthmap = get_lengthmap()
 
 
-def checkfile(checksum, filename):
+def checkfile(checksum, filename, known_algorithm=None):
     """
     ascii checksum
 
@@ -57,9 +61,14 @@ def checkfile(checksum, filename):
         return False
 
     hashers = {}
-    for algorithm in lengthmap.get(len(binary_checksum), []):
-        hasher = hashlib.new(algorithm)
-        hashers[hasher] = algorithm
+    if known_algorithm is None:
+        for algorithm in lengthmap.get(len(binary_checksum), []):
+            hasher = hashlib.new(algorithm)
+            hashers[hasher] = algorithm
+    else:
+        known_algorithm = known_algorithm.lower()
+        hasher = getattr(hashlib, known_algorithm)()
+        hashers[hasher] = known_algorithm
 
     if filename[0] == "*":
         mode = "rb"
@@ -97,13 +106,32 @@ if __name__ == "__main__":
     bad_lines = 0
     with open(sys.argv[1], "r") as ifile:
         for line in ifile:
+            result = None
             if "  " or " *" in line:
                 line = line.rstrip("\n")
-                checksum, filename = line.split(" ", 1)
-                result = checkfile(checksum, filename)
-                if result:
-                    print("\n".join(result))
-                    continue
+                try:
+                    checksum, filename = line.split(" ", 1)
+                    result = checkfile(checksum, filename)
+                except ValueError:
+                    pass
+            if " = " in line:
+                # example: MD5 (/dev/null) = d41d8cd98f00b204e9800998ecf8427e
+                try:
+                    algorithm = line.split(" ", 1)[0]
+                    checksum = line.rsplit(" ", 1)[1]
+                    filename = line[len(algorithm) + len(" ("):
+                                    -(len(checksum) + len(") = "))]
+                    # Add binary indicator to filename
+                    filename = "*" + filename
+                    # print(algorithm, filename, checksum)
+                    result = checkfile(checksum, filename,
+                                       known_algorithm=algorithm)
+                except ValueError:
+                    pass
+            if result:
+                print("\n".join(result))
+                continue
             bad_lines += 1
+
     if bad_lines > 1:
         print("{} lines ignored".format(bad_lines))
