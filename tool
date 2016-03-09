@@ -96,6 +96,9 @@ class Tooler(object):
 
         parser_add = subparsers.add_parser("add", help="Add tooldirs")
         parser_add.set_defaults(cmd="add")
+        parser_add.add_argument("-n", "--dry-run", default=False,
+                                action="store_true",
+                                help="Do dot change anything")
         parser_add.add_argument("tooldir", nargs="*",
                                 help="tooldirs to add, default: %(default)s",
                                 default=["."])
@@ -110,11 +113,11 @@ class Tooler(object):
         self.homedir = os.path.expanduser("~")
 
         if args.cmd == "add":
-            self.add(args.tooldir)
+            self.add(args.tooldir, dry_run=args.dry_run)
         elif args.cmd == "check":
             self.check(None)
 
-    def add(self, dirs, dry_run=False):
+    def add(self, dirs, *, dry_run=False):
         for dir_ in dirs:
             tooldir = os.path.relpath(dir_, self.homedir)
             if not tooldir in self.config:
