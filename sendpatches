@@ -44,6 +44,8 @@ def getproject():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--project", default=None)
+    parser.add_argument("--base", default="origin/master",
+                        help="Patch base, default: %(default)s")
     parser.add_argument("recipient", default=None, nargs="?")
     args = parser.parse_args()
 
@@ -60,7 +62,7 @@ if __name__ == "__main__":
     tempdir = tempfile.mkdtemp()
 
     cmd = ("git", "format-patch", "--output-directory", tempdir,
-           "--cover-letter", "origin/master")
+           "--cover-letter", args.base)
     subprocess.check_call(cmd)
 
     coverletter = os.path.join(tempdir, "0000-cover-letter.patch")
