@@ -34,6 +34,9 @@ READ_BLOCKSIZE = 2 ** 21
 
 IGNORE_DIRS = (".git", ".svn", ".hg")
 
+def shellquote(s):
+    return "'" + s.replace("'", "'\\''") + "'"
+
 
 class File(object):
     def __init__(self, path, filedb):
@@ -170,7 +173,7 @@ if __name__ == "__main__":
 
                     print("#", keep)
                     for f in remove:
-                        print("rm", f)
+                        print("rm", shellquote(f))
                         if args.rm:
                             os.remove(f)
                     print("")
