@@ -23,18 +23,38 @@
 #}}}
 
 import argparse
+from contextlib import contextmanager
+import signal
 import ssl
 
 import OpenSSL
 
 
-def get_certnames(target, port=443):
+class TimeoutException(Exception):
+    pass
+
+
+@contextmanager
+def timelimit(seconds):
+    def signalhandler(signum, frame):
+        raise TimeoutException("timed out after {} seconds".format(seconds))
+
+    signal.signal(signal.SIGALRM, signalhandler)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+
+
+def get_certnames(target, port=443, timeout=3):
     pem_cert = None
     exceptions = []
     for version in [ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_SSLv23]:
         try:
-            pem_cert = ssl.get_server_certificate((target, port),
-                                                  ssl_version=version)
+            with timelimit(timeout):
+                pem_cert = ssl.get_server_certificate((target, port),
+                                                      ssl_version=version)
             break
         except Exception as e:
             exceptions.append(str(e))
@@ -62,6 +82,7 @@ def get_certnames(target, port=443):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", default=443)
+    parser.add_argument("--timeout", default=3)
     parser.add_argument("target", nargs="+")
     args = parser.parse_args()
     for target in args.target:
@@ -70,5 +91,5 @@ if __name__ == "__main__":
             port = int(port)
         else:
             port = args.port
-        certnames = get_certnames(target, port)
+        certnames = get_certnames(target, port, timeout=args.timeout)
         print("{} {}".format(target, certnames))
