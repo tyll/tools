@@ -50,8 +50,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.recipient is None:
-        args.recipient = subprocess.check_output(
-            ("git", "config", "sendemail.to"))
+        try:
+            args.recipient = subprocess.check_output(
+                ("git", "config", "sendemail.to"))
+        except subprocess.CalledProcessError:
+            pass
     if not args.recipient:
         sys.stderr.write("No recipient specified")
         sys.exit(1)
