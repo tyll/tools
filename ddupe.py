@@ -173,7 +173,10 @@ if __name__ == "__main__":
 
                     print("#", keep)
                     for f in remove:
-                        print("rm", shellquote(f))
+                        try:
+                            print("rm", shellquote(f))
+                        except UnicodeEncodeError:
+                            print("# Error quoting ", repr(f))
                         if args.rm:
                             os.remove(f)
                     print("")
