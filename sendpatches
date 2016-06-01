@@ -56,7 +56,7 @@ if __name__ == "__main__":
         except subprocess.CalledProcessError:
             pass
     if not args.recipient:
-        sys.stderr.write("No recipient specified")
+        sys.stderr.write("ERROR: No recipient specified.\n")
         sys.exit(1)
 
     if args.project is None:
