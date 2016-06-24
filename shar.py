@@ -30,6 +30,15 @@ def shellquote(s):
     return "'" + s.replace("'", "'\\''") + "'"
 
 
+def sharfile(filepath, ofile):
+    quotedfile = shellquote(filepath)
+    with open(filepath, "rb") as ifile:
+        filedata = ifile.read()
+    ofile.write("cat > {} <<EOF\n".format(quotedfile))
+    ofile.write(filedata)
+    ofile.write("EOF\n")
+
+
 if __name__ == "__main__":
     # Shell Archive tool
     ofile = sys.stdout
@@ -38,16 +47,14 @@ if __name__ == "__main__":
     else:
         startdir = "."
 
-    for root, dirs, files in os.walk(startdir):
-        for d in dirs:
-            quoteddir = shellquote(os.path.join(root, d))
-            ofile.write("mkdir {}\n".format(quoteddir))
+    if os.path.isfile(startdir):
+        sharfile(startdir, ofile)
+    else:
+        for root, dirs, files in os.walk(startdir):
+            for d in dirs:
+                quoteddir = shellquote(os.path.join(root, d))
+                ofile.write("mkdir {}\n".format(quoteddir))
 
-        for f in files:
-            filepath = os.path.join(root, f)
-            quotedfile = shellquote(filepath)
-            with open(filepath, "rb") as ifile:
-                filedata = ifile.read()
-            ofile.write("cat > {} <<EOF\n".format(quotedfile))
-            ofile.write(filedata)
-            ofile.write("EOF\n")
+            for f in files:
+                filepath = os.path.join(root, f)
+                sharfile(filepath, ofile)
