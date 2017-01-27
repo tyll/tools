@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -tt
 # vim: fileencoding=utf8
-#{{{ License header: MIT
+# {{{ License header: MIT
 # Copyright (c) 2016 Till Maas <opensource@till.name>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#}}}
+# }}}
 
 import argparse
 import os
