@@ -43,6 +43,7 @@ if __name__ == "__main__":
     buf = bytearray([0] * bufsize)
     allwritten = 0
     remainingdata = filesize
+    filesize_mib = int(filesize / 2**20)
 
     start = time.time()
     laststatus = start
@@ -57,14 +58,18 @@ if __name__ == "__main__":
         buffered += written
         now = time.time()
         if now - laststatus > 1:
+            allwritten_mib = int(allwritten / 2**20)
             elapsed = now - start
             writespeed = allwritten / elapsed
             progress = int(allwritten / filesize * 100)
             remainingtime = int(remainingdata / writespeed)
-            sys.stderr.write("\rSpeed: {} kb/s, progress: {}%, "
-                             "remaining: {}s, elapsed: {}s".format(
+            sys.stderr.write("\r\x1b[KSpeed: {} KiB/s, progress: {}%, "
+                             "remaining: {}s, elapsed: {}s, "
+                             "written: {}/{} MiB".format(
                                  int(writespeed / 1024), progress,
-                                 remainingtime, int(elapsed)))
+                                 remainingtime, int(elapsed),
+                                 allwritten_mib, filesize_mib)
+                             )
             laststatus = now
 
         if buffered > 30 * 2 ** 20:
@@ -72,6 +77,11 @@ if __name__ == "__main__":
             buffered = 0
         if written != bufsize:
             sys.stderr.write(
-                "Abort, only wrote {} bytes, total written: {}\n".format(
+                "\nAbort, only wrote {} bytes, total written: {}".format(
                     written, allwritten))
             break
+    elapsed = now - start
+    writespeed = allwritten / elapsed
+    remainingdata = filesize - allwritten
+    sys.stderr.write("\n{} bytes remaining. writespeed: {} KiB/s\n".format(
+        remainingdata, int(writespeed / 1024)))
