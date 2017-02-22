@@ -1,0 +1,63 @@
+#!/usr/bin/python3 -tt
+# vim: fileencoding=utf8
+# {{{ License header: MIT
+# Copyright (c) 2017 Till Maas <opensource@till.name>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+# }}}
+
+# write a shell script to stdout that removes all rpm files in a current
+# directory that are not the latest rpms according to the version in their name
+
+import functools
+import glob
+
+
+import rpm
+
+
+def rpm_cmp(rpm1, rpm2):
+    diff = rpm.labelCompare((None, rpm1["version"], rpm1["release"]),
+                            (None, rpm2["version"], rpm2["release"]))
+    return diff
+
+
+def rpm_latest(list_):
+    list_ = list(list_)
+    list_.sort(key=functools.cmp_to_key(rpm_cmp))
+    return list_[-1]
+
+
+if __name__ == "__main__":
+    files = {}
+    for rpmfile in glob.glob("*.rpm"):
+        name, version, release = rpmfile.rsplit("-", 2)
+        release, arch, _ = release.rsplit(".", 2)
+        files.setdefault(name, {})[rpmfile] = {
+            "name": name, "version": version, "release": release,
+            "version-release": version + "-" + release, "arch": arch,
+            "filename": rpmfile}
+
+    for rpmname, rpmfiles in files.items():
+        print("#" + rpmname)
+        latest = rpm_latest(rpmfiles.values())
+        print("# latest: " + latest["filename"])
+        for filename in rpmfiles:
+            if filename != latest["filename"]:
+                print("rm -- " + filename)
