@@ -1,0 +1,49 @@
+#!/usr/bin/python -tt
+# vim: fileencoding=utf8
+#{{{ License header: MIT
+# Copyright (c) 2016 Till Maas <opensource@till.name>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#}}}
+
+import argparse
+import sys
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        "Create a character string that encodes its length")
+    parser.add_argument("maxlength", help="Maximum length that is required",
+            type=int)
+    args = parser.parse_args()
+
+    maxlen = args.maxlength
+    output = 0
+
+    padded_length = 5
+    length_fmt = "{0:" + str(padded_length) + "}"
+    while output < maxlen:
+        if len(str(output + padded_length + 5)) >= padded_length:
+            padded_length += 5
+            length_fmt = "{0:" + str(padded_length) + "}"
+
+        new = length_fmt.format(output + padded_length)
+        new = new.replace("  ", "_.").replace(" ", "_")
+        sys.stdout.write(new)
+        output += len(new)
