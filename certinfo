@@ -1,0 +1,85 @@
+#!/usr/bin/python -tt
+# vim: fileencoding=utf8
+# {{{ License header: MIT
+# Copyright (c) 2016 Till Maas <opensource@till.name>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+# }}}
+
+import argparse
+import OpenSSL
+
+BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----"
+END_CERTIFICATE = "-----END CERTIFICATE-----"
+
+
+def join_components(components):
+    return "/".join(["=".join(x) for x in components])
+
+
+def makecert(certdata):
+    cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM,
+                                           certdata)
+    return cert
+
+
+def formatdate(zulustring):
+    year = zulustring[0:4]
+    month = zulustring[4:6]
+    day = zulustring[6:8]
+
+    date = "{}-{}-{}".format(year, month, day)
+    return date
+
+
+def certinfo(cert, subject=True, issuer=True, validity=True):
+    lines = []
+    if subject:
+        subject = cert.get_subject().get_components()
+        lines.append("Subject: " + join_components(subject))
+
+    if issuer:
+        issuer = cert.get_issuer().get_components()
+        lines.append("Issuer: " + join_components(issuer))
+
+    if validity:
+        begin = formatdate(cert.get_notBefore())
+        end = formatdate(cert.get_notAfter())
+        lines.append("Validity: {} - {}".format(begin, end))
+
+    return "\n".join(lines)
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("certfiles", nargs="+")
+    args = parser.parse_args()
+
+    for filename in args.certfiles:
+        print("File: {}".format(filename))
+        with open(filename, "rb") as ifile:
+            certdata = ""
+            for line in ifile.readlines():
+                certdata += line
+                if line.strip() == END_CERTIFICATE:
+                    cert = makecert(certdata)
+                    print(certinfo(cert))
+                    print("")
+                    certdata = ""
