@@ -171,7 +171,7 @@ if __name__ == "__main__":
                         else:
                             keep = dupe_paths[0]
 
-                    print("#", keep)
+                    print("#", shellquote(keep))
                     for f in remove:
                         try:
                             print("rm", shellquote(f))
