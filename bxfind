@@ -1,5 +1,5 @@
 #!/usr/bin/python -tt
-# vim: fileencoding=utf8 foldmethod=marker
+# vim: fileencoding=utf8
 #{{{ License header: MIT
 # Copyright (c) 2014 Till Maas <opensource@till.name>
 #
@@ -42,9 +42,13 @@ if __name__ == "__main__":
     parser.add_argument("--header", default="", help="Header of a match")
     parser.add_argument("--out-prefix", default="bxfind-",
                         help="Prefix for output files")
+    parser.add_argument("--start-at", default="0x00",
+                        help="start at offset (default: %(default)s)")
     parser.add_argument("infilename")
     parser.add_argument("searchstring")
     args = parser.parse_args()
+
+    args.start_at = int(args.start_at, 16)
 
     read = 0
     infilename = args.infilename
@@ -67,7 +71,7 @@ if __name__ == "__main__":
         # as well
         file_size = os.lseek(ifile.fileno(), 0, os.SEEK_END)
         # Reset file position
-        os.lseek(ifile.fileno(), 0, os.SEEK_SET)
+        os.lseek(ifile.fileno(), args.start_at, os.SEEK_SET)
 
         beginning = datetime.datetime.now()
         while True:
@@ -76,7 +80,8 @@ if __name__ == "__main__":
             if stat_count == 0:
                 now = datetime.datetime.now()
                 if last_stat != now.second:
-                    done = float(file_pos) / file_size
+                    done = float(file_pos - args.start_at) / (
+                        file_size - args.start_at)
                     elapsed = (now - beginning).total_seconds()
                     try:
                         eta = elapsed / done
