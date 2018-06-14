@@ -130,6 +130,12 @@ class Tooler(object):
                 linkinfo = "{} -> {}".format(binpath, relpath)
                 if not os.path.isfile(binpath):
                     if not dry_run:
+                        if os.path.islink(binpath):
+                            linktarget = os.readlink(binpath)
+                            if not os.path.exists(linktarget):
+                                os.unlink(binpath)
+                            else:
+                                print("Skipped: ", binpath)
                         os.symlink(relpath, binpath)
                         print("Added ", linkinfo)
                     else:
