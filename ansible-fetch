@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-# Simple wrapper around ansible to fetcha file from a remote system
+# Simple wrapper around ansible to fetch a file from a remote system
 file="${1}"
 shift
 
