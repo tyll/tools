@@ -1,6 +1,5 @@
 #! /usr/bin/python -tt
 # vim: fileencoding=utf8
-#{{{ License header: MIT
 # Copyright (c) 2016 Till Maas <opensource@till.name>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +19,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#}}}
 import os
 
 import sys
@@ -32,7 +30,7 @@ def shellquote(s):
 
 def sharfile(filepath, ofile):
     quotedfile = shellquote(filepath)
-    with open(filepath, "rb") as ifile:
+    with open(filepath, "r", encoding="latin1") as ifile:
         filedata = ifile.read()
     ofile.write("cat > {} <<EOF\n".format(quotedfile))
     ofile.write(filedata)
