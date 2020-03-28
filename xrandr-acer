@@ -1,0 +1,47 @@
+#!/usr/bin/bash
+# Copyright (c) 2020 Till Maas <opensource@till.name>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+xrandr --output eDP-1 --off --output DP-1-2 --primary --auto
+
+xrandr --setmonitor c 1640/376x1600/367+1100+0 DP-1-2
+xrandr --setmonitor l 1100/252x1600/367+0+0 none
+xrandr --setmonitor r 1100/252x1600/367+2740+0 none
+
+
+xset r rate 220 45
+
+
+# for ws in 1 2 3
+# do
+#     i3-msg "[workspace=$ws] move workspace to output l"
+# done
+# 
+# for ws in 4 5 6 7
+# do
+#     i3-msg "[workspace=$ws] move workspace to output c"
+# done
+# 
+# for ws in 8 9 10
+# do
+#     i3-msg "[workspace=$ws] move workspace to output r"
+# done
+
+i3-msg restart
