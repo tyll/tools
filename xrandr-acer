@@ -29,11 +29,12 @@ else
 fi
 
 setup_acer() {
-    xrandr --output "${internal}" --off --output "${acer}" --primary --auto
+    #xrandr --output "${internal}" --off --output "${acer}" --primary --auto
+    xrandr --output "${internal}" --auto --output "${acer}" --primary --auto
 
-    xrandr --setmonitor c 1640/376x1600/367+1100+0 "${acer}"
-    xrandr --setmonitor l 1100/252x1600/367+0+0 none
-    xrandr --setmonitor r 1100/252x1600/367+2740+0 none
+    xrandr --setmonitor c 1840/376x1600/367+1000+0 "${acer}"
+    xrandr --setmonitor l 1000/252x1600/367+0+0 none
+    xrandr --setmonitor r 1000/252x1600/367+2840+0 none
 
     # for ws in 1 2 3
     # do
