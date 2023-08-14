@@ -1,0 +1,3 @@
+#! /usr/bin/bash
+
+exec flatpak run org.signal.Signal/x86_64/stable
