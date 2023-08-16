@@ -1,7 +1,7 @@
-#!/usr/bin/python -tt
+#! /usr/bin/python3 -tt
 # vim: fileencoding=utf8
 # {{{ License header: MIT
-# Copyright (c) 2016 Till Maas <opensource@till.name>
+# Copyright (c) 2016,2023 Till Maas <opensource@till.name>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@ END_CERTIFICATE = "-----END CERTIFICATE-----"
 
 
 def join_components(components):
-    return "/".join(["=".join(x) for x in components])
+    return b"/".join([b"=".join(x) for x in components]).decode("utf-8")
 
 
 def makecert(certdata):
@@ -59,8 +59,8 @@ def certinfo(cert, subject=True, issuer=True, validity=True):
         lines.append("Issuer: " + join_components(issuer))
 
     if validity:
-        begin = formatdate(cert.get_notBefore())
-        end = formatdate(cert.get_notAfter())
+        begin = formatdate(cert.get_notBefore().decode("utf-8"))
+        end = formatdate(cert.get_notAfter().decode("utf-8"))
         lines.append("Validity: {} - {}".format(begin, end))
 
     return "\n".join(lines)
@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     for filename in args.certfiles:
         print("File: {}".format(filename))
-        with open(filename, "rb") as ifile:
+        with open(filename, "r") as ifile:
             certdata = ""
             for line in ifile.readlines():
                 certdata += line
