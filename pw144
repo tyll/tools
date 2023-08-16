@@ -22,7 +22,11 @@
 # THE SOFTWARE.
 #}}}
 
+import base64
+import math
 import os
 
 MINBITS = 144  # divisibly by 6 (for base64) and 8 (for os.urandom)
-print(os.urandom(MINBITS / 8).encode("base64").strip())
+random_data = os.urandom(math.ceil(MINBITS / 8))
+print(base64.b64encode(random_data).decode("latin1"))
+#print(base64.b85encode(random_data).decode("latin1"))
