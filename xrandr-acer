@@ -21,16 +21,23 @@
 
 internal="eDP-1"
 
-if xrandr | grep -q "^DP-1-2 connected"
+
+if xrandr | grep -q "^DP[^ ]* connected"
 then
-    acer="DP-1-2"
+    acer="$(xrandr | grep "^DP[^ ]* connected" | cut -d" " -f 1)"
 else
     acer="HDMI-2"
 fi
 
 setup_acer() {
-    #xrandr --output "${internal}" --off --output "${acer}" --primary --auto
-    xrandr --output "${internal}" --auto --output "${acer}" --primary --auto
+    for m in c l r
+    do
+        xrandr --delmonitor "$m"
+    done
+    # P1 Gen 4 needs this to cycle the output once to get it back on
+    #xrandr --output "${acer}" --off
+    xrandr --output "${internal}" --off --output "${acer}" --primary --auto
+    #xrandr --output "${internal}" --auto --output "${acer}" --primary --auto
 
     xrandr --setmonitor c 1840/376x1600/367+1000+0 "${acer}"
     xrandr --setmonitor l 1000/252x1600/367+0+0 none
@@ -52,10 +59,36 @@ setup_acer() {
     # done
 }
 
+
+setup_dual() {
+    for m in c l r
+    do
+        xrandr --delmonitor "$m"
+    done
+
+    xrandr --output "${internal}" --off --output "${acer}" --primary --auto
+    #xrandr --output "${internal}" --auto --output "${acer}" --primary --auto
+
+    xrandr --setmonitor l 1920/440x1600/367+0+0 "${acer}"
+    xrandr --setmonitor r 1920/440x1600/367+1920+0 none
+
+    for ws in 1 2 3 4 5
+    do
+        i3-msg "[workspace=$ws] move workspace to output l"
+    done
+
+    for ws in 6 7 8 9 10
+    do
+        i3-msg "[workspace=$ws] move workspace to output r"
+    done
+}
+
 setup_internal()
 {
     # xrandr --output "${acer}" --off --output "${internal}" --primary --auto
-    xrandr --output "${internal}" --primary --auto --output "${acer}" --same-as "${internal}"
+    #xrandr --output "${internal}" --primary --auto --output "${acer}" --same-as "${internal}"
+    acer="$(xrandr | grep ^DP- | grep 3840x1600 | cut -d" " -f 1)"
+    xrandr --output "${internal}" --primary --auto --scale 0.75 --output "${acer}" --off
 
     for m in c l r
     do
@@ -68,6 +101,9 @@ mode="${0##*xrandr-}"
 if [[ "${mode}" == "acer" ]]
 then
     setup_acer
+elif [[ "${mode}" == "dual" ]]
+then
+    setup_dual
 elif [[ "${mode}" == "internal" ]]
 then
     setup_internal
