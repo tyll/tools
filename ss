@@ -22,4 +22,4 @@
 #}}}
 
 # Wrap ss to make its output readable
-LANG=C ss "${@}" | sed -e 's/\([^ ]*\) Address:Port/\1/g' | column -t
+LANG=C /usr/sbin/ss "${@}" | sed -e 's/\([^ ]*\) Address:Port/\1/g' | column -t
