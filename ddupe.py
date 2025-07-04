@@ -151,7 +151,8 @@ if __name__ == "__main__":
                             checked.append(otherfile)
                 if dupes:
                     dupes.insert(0, file_)
-                    dupe_paths = [d.path for d in dupes]
+                    dupe_paths = sorted([d.path for d in dupes], key=len)
+
                     if args.prefer_rm is None:
                         keep = dupe_paths[0]
                         remove = dupe_paths[1:]
@@ -171,7 +172,7 @@ if __name__ == "__main__":
                         else:
                             keep = dupe_paths[0]
 
-                    print("#", shellquote(keep))
+                    print("# rm ", shellquote(keep))
                     for f in remove:
                         try:
                             print("rm", shellquote(f))
