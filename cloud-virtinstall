@@ -25,7 +25,7 @@ if [[ "${#}"  -lt 3 ]]
 then
     echo "USAGE: ${0} name srcdisk os_variant"
     echo "Get os_variant names with 'osinfo-query os', examples: "
-    echo "fedora32, rhel8.1, centos8, ubuntu19.10"
+    echo "fedora35, rhel8.6, centos-stream8, ubuntu19.10"
     exit 1
 fi
 
@@ -38,8 +38,9 @@ disk="${libvirtbase}/${name}_${srcdisk##*/}"
 cloudinit="${libvirtbase}/${disk##*/}-cloudinit.iso"
 
 cp --no-clobber "${srcdisk}" "${disk}"
+qemu-img resize "${disk}" +5G
 
 os_variant="${3}"
 
 mkcloudinit --hostname "${name}" "${cloudinit}"
-virt-install --import --name "${name}" --ram 1024 --vcpus 1 --disk "${disk}",format=qcow2,bus=virtio --disk "${cloudinit}",device=cdrom --network bridge=virbr0,model=virtio --controller scsi,model=virtio-scsi --os-type=linux --os-variant="${os_variant}" --graphics spice --noautoconsole --check path_in_use=off
+virt-install --import --name "${name}" --ram 2048 --vcpus 1 --disk "${disk}",format=qcow2,bus=virtio --disk "${cloudinit}",device=cdrom --network bridge=virbr0,model=virtio --controller scsi,model=virtio-scsi --os-variant="${os_variant}" --graphics spice --noautoconsole --check path_in_use=off
